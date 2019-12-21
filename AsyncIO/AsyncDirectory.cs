@@ -1,52 +1,89 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿// <copyright file="AsyncDirectory.cs" company="PlaceholderCompany">
+// Copyright (c) PlaceholderCompany. All rights reserved.
+// </copyright>
 
 namespace AsyncIO
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Runtime.CompilerServices;
+    using System.Text;
+    using System.Threading.Tasks;
+
+    // TO-DO: option to be able to overwrite.
+
+    /// <summary>
+    /// Provides features for directory handling.
+    /// </summary>
     public class AsyncDirectory
     {
         private readonly AsyncFile file;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AsyncDirectory"/> class.
+        /// </summary>
+        /// <param name="file">Needed features for file handling.</param>
         internal AsyncDirectory(AsyncFile file)
         {
             this.file = file;
         }
 
+        /// <summary>
+        /// Recursive copy with all contents and subfolders.
+        /// </summary>
+        /// <param name="sourcePath">Source directory path.</param>
+        /// <param name="targetPath">Target directory path.</param>
         public void Copy(string sourcePath, string targetPath)
         {
             DirectoryInfo source = new DirectoryInfo(sourcePath);
             DirectoryInfo target = new DirectoryInfo(targetPath);
 
-            CopyAll(source, target);
+            this.CopyAll(source, target);
         }
 
+        /// <summary>
+        /// Recursive async copy with all contents and subfolders.
+        /// </summary>
+        /// <param name="sourcePath">Source directory path.</param>
+        /// <param name="targetPath">Target directory path.</param>
+        /// <returns>Task.</returns>
         public async Task CopyAsync(string sourcePath, string targetPath)
         {
             DirectoryInfo source = new DirectoryInfo(sourcePath);
             DirectoryInfo target = new DirectoryInfo(targetPath);
 
-            await CopyAllAsync(source, target).ConfigureAwait(false);
+            await this.CopyAllAsync(source, target).ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Recursive copy with all contents and subfolders.
+        /// </summary>
+        /// <param name="sourcePath">Source directory path.</param>
+        /// <param name="targetPath">Target directory path.</param>
+        /// <param name="bufferLength">Buffer length for file copy.</param>
         public void Copy(string sourcePath, string targetPath, int bufferLength)
         {
             DirectoryInfo source = new DirectoryInfo(sourcePath);
             DirectoryInfo target = new DirectoryInfo(targetPath);
 
-            CopyAll(source, target, bufferLength);
+            this.CopyAll(source, target, bufferLength);
         }
 
+        /// <summary>
+        /// Recursive copy with all contents and subfolders.
+        /// </summary>
+        /// <param name="sourcePath">Source directory path.</param>
+        /// <param name="targetPath">Target directory path.</param>
+        /// <param name="bufferLength">Buffer length for file copy.</param>
+        /// <returns>Task.</returns>
         public async Task CopyAsync(string sourcePath, string targetPath, int bufferLength)
         {
             DirectoryInfo source = new DirectoryInfo(sourcePath);
             DirectoryInfo target = new DirectoryInfo(targetPath);
 
-            await CopyAllAsync(source, target, bufferLength).ConfigureAwait(false);
+            await this.CopyAllAsync(source, target, bufferLength).ConfigureAwait(false);
         }
 
         private void CopyAll(DirectoryInfo source, DirectoryInfo target)
@@ -64,7 +101,7 @@ namespace AsyncIO
             foreach (DirectoryInfo subSource in source.GetDirectories())
             {
                 DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(subSource.Name);
-                CopyAll(subSource, nextTargetSubDir);
+                this.CopyAll(subSource, nextTargetSubDir);
             }
         }
 
