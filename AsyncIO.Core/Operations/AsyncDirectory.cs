@@ -20,14 +20,17 @@ namespace AsyncIO.Core
     public class AsyncDirectory
     {
         private readonly AsyncFile file;
+        private readonly Transaction transaction;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AsyncDirectory"/> class.
         /// </summary>
         /// <param name="file">Needed features for file handling.</param>
-        internal AsyncDirectory(AsyncFile file)
+        /// <param name="transaction">Needed transaction features.</param>
+        internal AsyncDirectory(AsyncFile file, Transaction transaction)
         {
             this.file = file;
+            this.transaction = transaction;
         }
 
         /// <summary>
@@ -92,6 +95,7 @@ namespace AsyncIO.Core
 
         private void CopyAll(DirectoryInfo source, DirectoryInfo target, bool overwrite)
         {
+            this.HandleTransaction(target.FullName);
             Directory.CreateDirectory(target.FullName);
 
             foreach (FileInfo sourceFile in source.GetFiles())
@@ -111,6 +115,7 @@ namespace AsyncIO.Core
 
         private async Task CopyAllAsync(DirectoryInfo source, DirectoryInfo target, bool overwrite)
         {
+            this.HandleTransaction(target.FullName);
             Directory.CreateDirectory(target.FullName);
 
             var tasks = new List<ConfiguredTaskAwaitable>();
@@ -136,6 +141,7 @@ namespace AsyncIO.Core
 
         private void CopyAll(DirectoryInfo source, DirectoryInfo target, int bufferLength, bool overwrite)
         {
+            this.HandleTransaction(target.FullName);
             Directory.CreateDirectory(target.FullName);
 
             foreach (FileInfo sourceFile in source.GetFiles())
@@ -155,6 +161,7 @@ namespace AsyncIO.Core
 
         private async Task CopyAllAsync(DirectoryInfo source, DirectoryInfo target, int bufferLength, bool overwrite)
         {
+            this.HandleTransaction(target.FullName);
             Directory.CreateDirectory(target.FullName);
 
             var tasks = new List<ConfiguredTaskAwaitable>();
@@ -175,6 +182,28 @@ namespace AsyncIO.Core
             foreach (var task in tasks)
             {
                 await task;
+            }
+        }
+
+        private void HandleTransaction(string path, [CallerMemberName] string caller = null)
+        {
+            var folder = Path.GetDirectoryName(path);
+            if (!Directory.Exists(folder))
+            {
+                this.transaction.PushUndoAction(
+                () =>
+                {
+                    if (Directory.Exists(folder))
+                    {
+                        Directory.Delete(folder, true);
+                    }
+
+                    var parent = Directory.GetParent(folder).FullName;
+                    if (!Directory.EnumerateFileSystemEntries(parent).Any())
+                    {
+                        Directory.Delete(parent);
+                    }
+                }, caller);
             }
         }
     }

@@ -332,5 +332,36 @@ namespace AsyncIO.Tests.Acceptance
 
             Assert.AreEqual(true, File.Exists(target));
         }
+
+        [Test]
+        public void SequenceAgnostic()
+        {
+            IO io = new IO();
+            string path = BinBase + "SequenceAgnostic/";
+
+            if (Directory.Exists(path))
+            {
+                Directory.Delete(path, true);
+            }
+
+            io.BeginTransaction();
+            io.Directory.Copy(AppBase, path, true);
+            io.Rollback();
+            Assert.AreEqual(false, Directory.Exists(path));
+
+            Directory.CreateDirectory(path + "BlockingFolder");
+            io.BeginTransaction();
+            io.Directory.Copy(AppBase, path, true);
+            io.Rollback();
+            Assert.AreEqual(true, Directory.Exists(path));
+            Directory.Delete(path, true);
+
+            Directory.CreateDirectory(AppBase + "BlockingFolder");
+            io.BeginTransaction();
+            io.Directory.Copy(AppBase, path, true);
+            io.Rollback();
+            Assert.AreEqual(false, Directory.Exists(path));
+            Directory.Delete(AppBase + "BlockingFolder");
+        }
     }
 }

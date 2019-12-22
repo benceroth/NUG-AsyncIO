@@ -31,7 +31,7 @@ namespace AsyncIO.Core
             this.Conversions = new Conversions(this.csvConfiguration, this.jsonConfiguration);
 
             this.File = new AsyncFile(this.Conversions, this.transaction);
-            this.Directory = new AsyncDirectory(this.File);
+            this.Directory = new AsyncDirectory(this.File, this.transaction);
         }
 
         /// <summary>
