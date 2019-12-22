@@ -317,7 +317,22 @@ namespace AsyncIO.Core
         {
             if (this.transaction.Running)
             {
-                this.transaction.Actions.Push(() => File.Delete(path));
+                var start = DateTime.Now.AddMilliseconds(-50);
+                var folder = Path.GetDirectoryName(path);
+                this.transaction.Actions.Push(() =>
+                {
+                    if (Directory.Exists(folder))
+                    {
+                        if (Directory.GetCreationTime(folder) >= start)
+                        {
+                            Directory.Delete(folder, true);
+                        }
+                        else if (File.Exists(path) && File.GetLastWriteTime(path) >= start)
+                        {
+                            File.Delete(path);
+                        }
+                    }
+                });
             }
         }
     }
