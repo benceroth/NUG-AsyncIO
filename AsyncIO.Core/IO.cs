@@ -1,8 +1,8 @@
-﻿// <copyright file="AsyncIO.cs" company="PlaceholderCompany">
+﻿// <copyright file="IO.cs" company="PlaceholderCompany">
 // Copyright (c) PlaceholderCompany. All rights reserved.
 // </copyright>
 
-namespace AsyncIO
+namespace AsyncIO.Core
 {
     using System;
     using CsvHelper.Configuration;
@@ -11,22 +11,24 @@ namespace AsyncIO
     /// <summary>
     /// Provides IO handling features.
     /// </summary>
-    public class AsyncIO
+    public class IO
     {
+        private readonly Transaction transaction;
         private readonly CsvConfiguration csvConfiguration;
         private readonly JsonConfiguration jsonConfiguration;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AsyncIO"/> class.
+        /// Initializes a new instance of the <see cref="IO"/> class.
         /// </summary>
-        public AsyncIO()
+        public IO()
         {
             this.csvConfiguration = new CsvConfiguration();
             this.jsonConfiguration = new JsonConfiguration();
 
+            this.transaction = new Transaction();
             this.Conversions = new Conversions(this.csvConfiguration, this.jsonConfiguration);
 
-            this.File = new AsyncFile(this.Conversions);
+            this.File = new AsyncFile(this.Conversions, this.transaction);
             this.Directory = new AsyncDirectory(this.File);
         }
 
@@ -71,5 +73,29 @@ namespace AsyncIO
         /// Gets conversions back and forth from objects to Json, Bson, Xml, Csv.
         /// </summary>
         public Conversions Conversions { get; }
+
+        /// <summary>
+        /// Begins an IO transaction.
+        /// </summary>
+        public void BeginTransaction()
+        {
+            this.transaction.BeginTransaction();
+        }
+
+        /// <summary>
+        /// Commits all changes.
+        /// </summary>
+        public void Commit()
+        {
+            this.transaction.Commit();
+        }
+
+        /// <summary>
+        /// Rollbacks all changes.
+        /// </summary>
+        public void Rollback()
+        {
+            this.transaction.Rollback();
+        }
     }
 }

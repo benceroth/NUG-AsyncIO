@@ -2,18 +2,20 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <AssemblyName>AsyncIO</AssemblyName>
-    <RootNamespace>AsyncIO</RootNamespace>
+    <AssemblyName>AsyncIO.Core</AssemblyName>
+    <RootNamespace>AsyncIO.Core</RootNamespace>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Authors>Róth Bence</Authors>
+    <Authors>Ritor42</Authors>
     <Company />
-    <Description>Provides conversions back and forth from object to Json, Bson, Xml, Csv with async file and directory operations.</Description>
+    <Description>Provides conversions back and forth from object to Json, Bson, Xml, Csv with async file and directory operations including IO transactions.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Ritor42/AsyncIO</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Ritor42/AsyncIO</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
     <PackageTags>async, sync, file, directory, folder, json, bson, xml, csv, conversion, converter, .net, core</PackageTags>
     <NeutralLanguage>en</NeutralLanguage>
+    <PackageId>AsyncIO.Core</PackageId>
+    <Product>AsyncIO.Core</Product>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

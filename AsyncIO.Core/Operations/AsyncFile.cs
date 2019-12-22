@@ -2,7 +2,7 @@
 // Copyright (c) PlaceholderCompany. All rights reserved.
 // </copyright>
 
-namespace AsyncIO
+namespace AsyncIO.Core
 {
     using System;
     using System.Collections.Generic;
@@ -17,14 +17,17 @@ namespace AsyncIO
     public class AsyncFile
     {
         private readonly Conversions conversions;
+        private readonly Transaction transaction;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AsyncFile"/> class.
         /// </summary>
         /// <param name="conversions">Needed conversion features.</param>
-        internal AsyncFile(Conversions conversions)
+        /// <param name="transaction">Needed transaction features.</param>
+        internal AsyncFile(Conversions conversions, Transaction transaction)
         {
             this.conversions = conversions ?? throw new ArgumentNullException(nameof(conversions));
+            this.transaction = transaction ?? throw new ArgumentNullException(nameof(transaction));
         }
 
         /// <summary>
@@ -127,7 +130,9 @@ namespace AsyncIO
         /// <param name="item">Item to be serialized.</param>
         public void WriteJson(string path, object item)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            var targetFolder = Path.GetDirectoryName(path);
+            Directory.CreateDirectory(targetFolder);
+            this.HandleTransaction(path);
             File.WriteAllText(path, this.conversions.ToJson(item));
         }
 
@@ -139,7 +144,9 @@ namespace AsyncIO
         /// <returns>Task.</returns>
         public async Task WriteJsonAsync(string path, object item)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            var targetFolder = Path.GetDirectoryName(path);
+            Directory.CreateDirectory(targetFolder);
+            this.HandleTransaction(path);
             await File.WriteAllTextAsync(path, this.conversions.ToJson(item)).ConfigureAwait(false);
         }
 
@@ -150,7 +157,9 @@ namespace AsyncIO
         /// <param name="item">Item to be serialized.</param>
         public void WriteBson(string path, object item)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            var targetFolder = Path.GetDirectoryName(path);
+            Directory.CreateDirectory(targetFolder);
+            this.HandleTransaction(path);
             File.WriteAllBytes(path, this.conversions.ToBson(item));
         }
 
@@ -162,7 +171,9 @@ namespace AsyncIO
         /// <returns>Task.</returns>
         public async Task WriteBsonAsync(string path, object item)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            var targetFolder = Path.GetDirectoryName(path);
+            Directory.CreateDirectory(targetFolder);
+            this.HandleTransaction(path);
             await File.WriteAllBytesAsync(path, this.conversions.ToBson(item)).ConfigureAwait(false);
         }
 
@@ -173,7 +184,9 @@ namespace AsyncIO
         /// <param name="item">Item to be serialized.</param>
         public void WriteXml(string path, object item)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            var targetFolder = Path.GetDirectoryName(path);
+            Directory.CreateDirectory(targetFolder);
+            this.HandleTransaction(path);
             File.WriteAllText(path, this.conversions.ToXml(item));
         }
 
@@ -185,7 +198,9 @@ namespace AsyncIO
         /// <returns>Task.</returns>
         public async Task WriteXmlAsync(string path, object item)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            var targetFolder = Path.GetDirectoryName(path);
+            Directory.CreateDirectory(targetFolder);
+            this.HandleTransaction(path);
             await File.WriteAllTextAsync(path, this.conversions.ToXml(item)).ConfigureAwait(false);
         }
 
@@ -197,7 +212,9 @@ namespace AsyncIO
         /// <param name="items">Items to be serialized.</param>
         public void WriteCsv<T>(string path, IEnumerable<T> items)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            var targetFolder = Path.GetDirectoryName(path);
+            Directory.CreateDirectory(targetFolder);
+            this.HandleTransaction(path);
             File.WriteAllText(path, this.conversions.ToCsv(items));
         }
 
@@ -210,7 +227,9 @@ namespace AsyncIO
         /// <returns>Task.</returns>
         public async Task WriteCsvAsync<T>(string path, IEnumerable<T> items)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            var targetFolder = Path.GetDirectoryName(path);
+            Directory.CreateDirectory(targetFolder);
+            this.HandleTransaction(path);
             await File.WriteAllTextAsync(path, this.conversions.ToCsv(items)).ConfigureAwait(false);
         }
 
@@ -221,7 +240,9 @@ namespace AsyncIO
         /// <param name="targetPath">Target directory path.</param>
         public void Copy(string sourcePath, string targetPath)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(targetPath));
+            var targetFolder = Path.GetDirectoryName(targetPath);
+            Directory.CreateDirectory(targetFolder);
+            this.HandleTransaction(targetPath);
             File.Copy(sourcePath, targetPath);
         }
 
@@ -233,7 +254,9 @@ namespace AsyncIO
         /// <returns>Task.</returns>
         public async Task CopyAsync(string sourcePath, string targetPath)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(targetPath));
+            var targetFolder = Path.GetDirectoryName(targetPath);
+            Directory.CreateDirectory(targetFolder);
+            this.HandleTransaction(targetPath);
             await File.WriteAllBytesAsync(targetPath, await File.ReadAllBytesAsync(sourcePath).ConfigureAwait(false)).ConfigureAwait(false);
         }
 
@@ -245,7 +268,9 @@ namespace AsyncIO
         /// <param name="bufferLength">Buffer length.</param>
         public void Copy(string sourcePath, string targetPath, int bufferLength)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(targetPath));
+            var targetFolder = Path.GetDirectoryName(targetPath);
+            Directory.CreateDirectory(targetFolder);
+            this.HandleTransaction(targetPath);
             using (var sourceStream = new FileStream(sourcePath, FileMode.Open))
             {
                 using (var destinationStream = new FileStream(targetPath, FileMode.CreateNew))
@@ -270,7 +295,9 @@ namespace AsyncIO
         /// <returns>Task.</returns>
         public async Task CopyAsync(string sourcePath, string targetPath, int bufferLength)
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(targetPath));
+            var targetFolder = Path.GetDirectoryName(targetPath);
+            Directory.CreateDirectory(targetFolder);
+            this.HandleTransaction(targetPath);
             using (var sourceStream = new FileStream(sourcePath, FileMode.Open))
             {
                 using (var destinationStream = new FileStream(targetPath, FileMode.CreateNew))
@@ -283,6 +310,14 @@ namespace AsyncIO
                         readCount = await sourceStream.ReadAsync(buffer, 0, bufferLength).ConfigureAwait(false);
                     }
                 }
+            }
+        }
+
+        private void HandleTransaction(string path)
+        {
+            if (this.transaction.Running)
+            {
+                this.transaction.Actions.Push(() => File.Delete(path));
             }
         }
     }

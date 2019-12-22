@@ -2,7 +2,7 @@
 // Copyright (c) PlaceholderCompany. All rights reserved.
 // </copyright>
 
-namespace AsyncIO
+namespace AsyncIO.Core
 {
     using System;
     using System.Collections.Generic;

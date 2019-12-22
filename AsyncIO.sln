@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29609.76
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AsyncIO", "AsyncIO\AsyncIO.csproj", "{6ADCD46E-C594-42BB-8F85-9156540D8DEC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AsyncIO.Core", "AsyncIO.Core\AsyncIO.Core.csproj", "{6ADCD46E-C594-42BB-8F85-9156540D8DEC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncIO.Tests", "AsyncIO.Tests\AsyncIO.Tests.csproj", "{B12EBB1A-BD00-4166-B4F6-01EBC502E67F}"
 EndProject
