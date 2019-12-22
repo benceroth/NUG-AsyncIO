@@ -287,7 +287,7 @@ namespace AsyncIO.Tests.Acceptance
             IO io = new IO();
             string path = Path.Combine(AppBase, "IgnoreExistingFile");
             File.WriteAllText(path, new string(' ', 10000));
-            await Task.Delay(50);
+
             try
             {
                 io.BeginTransaction();

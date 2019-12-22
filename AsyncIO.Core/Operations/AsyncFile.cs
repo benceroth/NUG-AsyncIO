@@ -7,6 +7,7 @@ namespace AsyncIO.Core
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
@@ -134,8 +135,8 @@ namespace AsyncIO.Core
         {
             var targetFolder = Path.GetDirectoryName(path);
             Directory.CreateDirectory(targetFolder);
-            this.HandleTransaction(path);
             File.WriteAllText(path, this.conversions.ToJson(item));
+            this.HandleTransaction(path);
         }
 
         /// <summary>
@@ -148,8 +149,8 @@ namespace AsyncIO.Core
         {
             var targetFolder = Path.GetDirectoryName(path);
             Directory.CreateDirectory(targetFolder);
-            this.HandleTransaction(path);
             await File.WriteAllTextAsync(path, this.conversions.ToJson(item)).ConfigureAwait(false);
+            this.HandleTransaction(path);
         }
 
         /// <summary>
@@ -161,8 +162,8 @@ namespace AsyncIO.Core
         {
             var targetFolder = Path.GetDirectoryName(path);
             Directory.CreateDirectory(targetFolder);
-            this.HandleTransaction(path);
             File.WriteAllBytes(path, this.conversions.ToBson(item));
+            this.HandleTransaction(path);
         }
 
         /// <summary>
@@ -175,8 +176,8 @@ namespace AsyncIO.Core
         {
             var targetFolder = Path.GetDirectoryName(path);
             Directory.CreateDirectory(targetFolder);
-            this.HandleTransaction(path);
             await File.WriteAllBytesAsync(path, this.conversions.ToBson(item)).ConfigureAwait(false);
+            this.HandleTransaction(path);
         }
 
         /// <summary>
@@ -188,8 +189,8 @@ namespace AsyncIO.Core
         {
             var targetFolder = Path.GetDirectoryName(path);
             Directory.CreateDirectory(targetFolder);
-            this.HandleTransaction(path);
             File.WriteAllText(path, this.conversions.ToXml(item));
+            this.HandleTransaction(path);
         }
 
         /// <summary>
@@ -202,8 +203,8 @@ namespace AsyncIO.Core
         {
             var targetFolder = Path.GetDirectoryName(path);
             Directory.CreateDirectory(targetFolder);
-            this.HandleTransaction(path);
             await File.WriteAllTextAsync(path, this.conversions.ToXml(item)).ConfigureAwait(false);
+            this.HandleTransaction(path);
         }
 
         /// <summary>
@@ -216,8 +217,8 @@ namespace AsyncIO.Core
         {
             var targetFolder = Path.GetDirectoryName(path);
             Directory.CreateDirectory(targetFolder);
-            this.HandleTransaction(path);
             File.WriteAllText(path, this.conversions.ToCsv(items));
+            this.HandleTransaction(path);
         }
 
         /// <summary>
@@ -231,8 +232,8 @@ namespace AsyncIO.Core
         {
             var targetFolder = Path.GetDirectoryName(path);
             Directory.CreateDirectory(targetFolder);
-            this.HandleTransaction(path);
             await File.WriteAllTextAsync(path, this.conversions.ToCsv(items)).ConfigureAwait(false);
+            this.HandleTransaction(path);
         }
 
         /// <summary>
@@ -245,14 +246,13 @@ namespace AsyncIO.Core
         {
             var targetFolder = Path.GetDirectoryName(targetPath);
             Directory.CreateDirectory(targetFolder);
-            this.HandleTransaction(targetPath);
-
             if (!overwrite && File.Exists(targetPath))
             {
                 throw new IOException("Cannot create a file when that file already exists");
             }
 
             File.WriteAllBytes(targetPath, File.ReadAllBytes(sourcePath));
+            this.HandleTransaction(targetPath);
         }
 
         /// <summary>
@@ -266,14 +266,13 @@ namespace AsyncIO.Core
         {
             var targetFolder = Path.GetDirectoryName(targetPath);
             Directory.CreateDirectory(targetFolder);
-            this.HandleTransaction(targetPath);
-
             if (!overwrite && File.Exists(targetPath))
             {
                 throw new IOException("Cannot create a file when that file already exists");
             }
 
             await File.WriteAllBytesAsync(targetPath, await File.ReadAllBytesAsync(sourcePath).ConfigureAwait(false)).ConfigureAwait(false);
+            this.HandleTransaction(targetPath);
         }
 
         /// <summary>
@@ -287,12 +286,12 @@ namespace AsyncIO.Core
         {
             var targetFolder = Path.GetDirectoryName(targetPath);
             Directory.CreateDirectory(targetFolder);
-            this.HandleTransaction(targetPath);
             using (var sourceStream = new FileStream(sourcePath, FileMode.Open))
             {
                 var fileMode = overwrite ? FileMode.Create : FileMode.CreateNew;
                 using (var destinationStream = new FileStream(targetPath, fileMode))
                 {
+                    this.HandleTransaction(targetPath);
                     var buffer = new byte[bufferLength];
                     int readCount = sourceStream.Read(buffer, 0, bufferLength);
                     while (readCount != 0)
@@ -316,12 +315,12 @@ namespace AsyncIO.Core
         {
             var targetFolder = Path.GetDirectoryName(targetPath);
             Directory.CreateDirectory(targetFolder);
-            this.HandleTransaction(targetPath);
             using (var sourceStream = new FileStream(sourcePath, FileMode.Open))
             {
                 var fileMode = overwrite ? FileMode.Create : FileMode.CreateNew;
                 using (var destinationStream = new FileStream(targetPath, fileMode))
                 {
+                    this.HandleTransaction(targetPath);
                     var buffer = new byte[bufferLength];
                     int readCount = await sourceStream.ReadAsync(buffer, 0, bufferLength).ConfigureAwait(false);
                     while (readCount != 0)
@@ -335,20 +334,20 @@ namespace AsyncIO.Core
 
         private void HandleTransaction(string path, [CallerMemberName] string caller = null)
         {
-            var start = DateTime.Now.AddMilliseconds(-50);
             var folder = Path.GetDirectoryName(path);
             this.transaction.PushUndoAction(
             () =>
             {
                 if (Directory.Exists(folder))
                 {
-                    if (Directory.GetCreationTime(folder) >= start)
-                    {
-                        Directory.Delete(folder, true);
-                    }
-                    else if (File.Exists(path) && File.GetLastWriteTime(path) >= start)
+                    if (File.Exists(path))
                     {
                         File.Delete(path);
+                    }
+
+                    if (!Directory.EnumerateFileSystemEntries(folder).Any())
+                    {
+                        Directory.Delete(folder);
                     }
                 }
             }, caller);
