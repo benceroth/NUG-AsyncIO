@@ -1,5 +1,9 @@
 ﻿using AsyncIO.Core;
+using AsyncIO.DemoConsole.Adapters;
 using AsyncIO.DemoConsole.Models;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -13,30 +17,34 @@ namespace AsyncIO.DemoConsole
 
         static void Main()
         {
-            DoWithoutTransaction();
-            DoWithTransaction();
+            DoWithoutTransaction().Wait();
+            DoWithTransaction().Wait();
             Console.ReadKey();
         }
 
-        static void DoWithoutTransaction()
+        static async Task DoWithoutTransaction()
         {
-            Configurations();
-            BrandToFormat();
-            BrandToFile().Wait();
-            BrandFromFile().Wait();
+            // Injectable ILogger in constructor.
+            var asyncio = new IO(GetLogger());
+
+            Configurations(asyncio);
+            BrandToFormat(asyncio);
+            await BrandToFile(asyncio);
+            await BrandFromFile(asyncio);
         }
 
-        static void DoWithTransaction()
+        static async Task DoWithTransaction()
         {
-            //Transactions are not global, each instance has it's own transaction.
-            var asyncio = new IO();
+            // Transactions are not global, each instance has it's own transaction.
+            // Injectable ILogger in constructor.
+            var asyncio = new IO(GetLogger());
             try
             {
                 asyncio.BeginTransaction();
                 Configurations(asyncio);
                 BrandToFormat(asyncio);
-                BrandToFile(asyncio).Wait();
-                BrandFromFile(asyncio).Wait();
+                await BrandToFile(asyncio);
+                await BrandFromFile(asyncio);
                 asyncio.Commit();
             }
             catch (Exception e)
@@ -65,8 +73,8 @@ namespace AsyncIO.DemoConsole
             string jsonString = asyncio.Conversions.ToJson(brand);
 
             // Self reference loops not handled in these types.
-            asyncio.Conversions.ToXml(brand);
-            asyncio.Conversions.ToBson(brand);
+            string xmlString = asyncio.Conversions.ToXml(brand);
+            byte[] bsonBytes = asyncio.Conversions.ToBson(brand);
         }
 
         static async Task BrandToFile(IO asyncio = null)
@@ -126,6 +134,15 @@ namespace AsyncIO.DemoConsole
                     }
                 }
             };
+        }
+
+        static Microsoft.Extensions.Logging.ILogger GetLogger()
+        {
+            return new SerilogLogger(
+                new LoggerConfiguration()
+                    .MinimumLevel.Debug()
+                    .WriteTo.Console()
+                    .CreateLogger());
         }
     }
 }
