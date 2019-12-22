@@ -22,6 +22,10 @@ PM> Install-Package AsyncIO.Core
 > paket add AsyncIO.Core
 ```
 
+##Building
+
+Compilation requires an up-to-date .NET Standard 2.1 SDK and running the unit tests additionally requires .NET Core 3.1+ as well as DemoConsole.
+
 ## License
 
 Massachusetts Institute of Technology License (MIT)
