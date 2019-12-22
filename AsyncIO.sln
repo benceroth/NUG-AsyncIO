@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.29609.76
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AsyncIO.Core", "AsyncIO.Core\AsyncIO.Core.csproj", "{6ADCD46E-C594-42BB-8F85-9156540D8DEC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncIO.Tests", "AsyncIO.Tests\AsyncIO.Tests.csproj", "{B12EBB1A-BD00-4166-B4F6-01EBC502E67F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AsyncIO.Tests", "AsyncIO.Tests\AsyncIO.Tests.csproj", "{B12EBB1A-BD00-4166-B4F6-01EBC502E67F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncIO.DemoConsole", "AsyncIO.DemoConsole\AsyncIO.DemoConsole.csproj", "{90D6E77A-EB74-4399-81F1-E4CE06CB9271}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{B12EBB1A-BD00-4166-B4F6-01EBC502E67F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B12EBB1A-BD00-4166-B4F6-01EBC502E67F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B12EBB1A-BD00-4166-B4F6-01EBC502E67F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90D6E77A-EB74-4399-81F1-E4CE06CB9271}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90D6E77A-EB74-4399-81F1-E4CE06CB9271}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90D6E77A-EB74-4399-81F1-E4CE06CB9271}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90D6E77A-EB74-4399-81F1-E4CE06CB9271}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

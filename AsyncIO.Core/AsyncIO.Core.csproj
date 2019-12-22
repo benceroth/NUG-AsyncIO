@@ -7,7 +7,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Ritor42</Authors>
     <Company />
-    <Description>Provides conversions back and forth from object to Json, Bson, Xml, Csv with async file and directory operations including IO transactions.</Description>
+    <Description>A library that provides async IO operations and transactions. Supports conversions back and forth from popular formats like Json, Bson, Xml, Csv on the fly or directly to persist.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Ritor42/AsyncIO</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Ritor42/AsyncIO</RepositoryUrl>
