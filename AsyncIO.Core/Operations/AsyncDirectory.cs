@@ -31,62 +31,66 @@ namespace AsyncIO.Core
         }
 
         /// <summary>
-        /// Recursive copy with all contents and subfolders.
+        /// Recursive copy with all contents and subfolders disallowing overwrite.
         /// </summary>
         /// <param name="sourcePath">Source directory path.</param>
         /// <param name="targetPath">Target directory path.</param>
-        public void Copy(string sourcePath, string targetPath)
+        /// <param name="overwrite">Overwrite existing file.</param>
+        public void Copy(string sourcePath, string targetPath, bool overwrite = false)
         {
             DirectoryInfo source = new DirectoryInfo(sourcePath);
             DirectoryInfo target = new DirectoryInfo(targetPath);
 
-            this.CopyAll(source, target);
+            this.CopyAll(source, target, overwrite);
         }
 
         /// <summary>
-        /// Recursive async copy with all contents and subfolders.
+        /// Recursive async copy with all contents and subfolders disallowing overwrite.
         /// </summary>
         /// <param name="sourcePath">Source directory path.</param>
         /// <param name="targetPath">Target directory path.</param>
+        /// <param name="overwrite">Overwrite existing file.</param>
         /// <returns>Task.</returns>
-        public async Task CopyAsync(string sourcePath, string targetPath)
+        public async Task CopyAsync(string sourcePath, string targetPath, bool overwrite = false)
         {
             DirectoryInfo source = new DirectoryInfo(sourcePath);
             DirectoryInfo target = new DirectoryInfo(targetPath);
 
-            await this.CopyAllAsync(source, target).ConfigureAwait(false);
+            await this.CopyAllAsync(source, target, overwrite).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Recursive copy with all contents and subfolders.
+        /// Recursive copy with all contents and subfolders disallowing overwrite.
         /// </summary>
         /// <param name="sourcePath">Source directory path.</param>
         /// <param name="targetPath">Target directory path.</param>
         /// <param name="bufferLength">Buffer length for file copy.</param>
-        public void Copy(string sourcePath, string targetPath, int bufferLength)
+        /// <param name="overwrite">Overwrite existing file.</param>
+        public void Copy(string sourcePath, string targetPath, int bufferLength, bool overwrite = false)
         {
             DirectoryInfo source = new DirectoryInfo(sourcePath);
             DirectoryInfo target = new DirectoryInfo(targetPath);
 
-            this.CopyAll(source, target, bufferLength);
+            this.CopyAll(source, target, bufferLength, overwrite);
         }
 
         /// <summary>
-        /// Recursive copy with all contents and subfolders.
+        /// Recursive copy with all contents and subfolders disallowing overwrite.
         /// </summary>
         /// <param name="sourcePath">Source directory path.</param>
         /// <param name="targetPath">Target directory path.</param>
         /// <param name="bufferLength">Buffer length for file copy.</param>
+        /// <param name="overwrite">Overwrite existing file.</param>
         /// <returns>Task.</returns>
-        public async Task CopyAsync(string sourcePath, string targetPath, int bufferLength)
+        public async Task CopyAsync(string sourcePath, string targetPath, int bufferLength, bool overwrite = false)
         {
             DirectoryInfo source = new DirectoryInfo(sourcePath);
             DirectoryInfo target = new DirectoryInfo(targetPath);
 
-            await this.CopyAllAsync(source, target, bufferLength).ConfigureAwait(false);
+            await this.CopyAllAsync(source, target, bufferLength, overwrite).ConfigureAwait(false);
         }
 
-        private void CopyAll(DirectoryInfo source, DirectoryInfo target)
+        private void CopyAll(DirectoryInfo source, DirectoryInfo target, bool overwrite)
         {
             Directory.CreateDirectory(target.FullName);
 
@@ -95,17 +99,17 @@ namespace AsyncIO.Core
                 var sourcePath = Path.Combine(source.FullName, sourceFile.Name);
                 var targetPath = Path.Combine(target.FullName, sourceFile.Name);
 
-                this.file.Copy(sourcePath, targetPath);
+                this.file.Copy(sourcePath, targetPath, overwrite);
             }
 
             foreach (DirectoryInfo subSource in source.GetDirectories())
             {
                 DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(subSource.Name);
-                this.CopyAll(subSource, nextTargetSubDir);
+                this.CopyAll(subSource, nextTargetSubDir, overwrite);
             }
         }
 
-        private async Task CopyAllAsync(DirectoryInfo source, DirectoryInfo target)
+        private async Task CopyAllAsync(DirectoryInfo source, DirectoryInfo target, bool overwrite)
         {
             Directory.CreateDirectory(target.FullName);
 
@@ -115,13 +119,13 @@ namespace AsyncIO.Core
                 var sourcePath = Path.Combine(source.FullName, sourceFile.Name);
                 var targetPath = Path.Combine(target.FullName, sourceFile.Name);
 
-                tasks.Add(this.file.CopyAsync(sourcePath, targetPath).ConfigureAwait(false));
+                tasks.Add(this.file.CopyAsync(sourcePath, targetPath, overwrite).ConfigureAwait(false));
             }
 
             foreach (DirectoryInfo subSource in source.GetDirectories())
             {
                 DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(subSource.Name);
-                tasks.Add(this.CopyAllAsync(subSource, nextTargetSubDir).ConfigureAwait(false));
+                tasks.Add(this.CopyAllAsync(subSource, nextTargetSubDir, overwrite).ConfigureAwait(false));
             }
 
             foreach (var task in tasks)
@@ -130,7 +134,7 @@ namespace AsyncIO.Core
             }
         }
 
-        private void CopyAll(DirectoryInfo source, DirectoryInfo target, int bufferLength)
+        private void CopyAll(DirectoryInfo source, DirectoryInfo target, int bufferLength, bool overwrite)
         {
             Directory.CreateDirectory(target.FullName);
 
@@ -139,17 +143,17 @@ namespace AsyncIO.Core
                 var sourcePath = Path.Combine(source.FullName, sourceFile.Name);
                 var targetPath = Path.Combine(target.FullName, sourceFile.Name);
 
-                this.file.Copy(sourcePath, targetPath, bufferLength);
+                this.file.Copy(sourcePath, targetPath, bufferLength, overwrite);
             }
 
             foreach (DirectoryInfo subSource in source.GetDirectories())
             {
                 DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(subSource.Name);
-                this.CopyAll(subSource, nextTargetSubDir, bufferLength);
+                this.CopyAll(subSource, nextTargetSubDir, bufferLength, overwrite);
             }
         }
 
-        private async Task CopyAllAsync(DirectoryInfo source, DirectoryInfo target, int bufferLength)
+        private async Task CopyAllAsync(DirectoryInfo source, DirectoryInfo target, int bufferLength, bool overwrite)
         {
             Directory.CreateDirectory(target.FullName);
 
@@ -159,13 +163,13 @@ namespace AsyncIO.Core
                 var sourcePath = Path.Combine(source.FullName, sourceFile.Name);
                 var targetPath = Path.Combine(target.FullName, sourceFile.Name);
 
-                tasks.Add(this.file.CopyAsync(sourcePath, targetPath, bufferLength).ConfigureAwait(false));
+                tasks.Add(this.file.CopyAsync(sourcePath, targetPath, bufferLength, overwrite).ConfigureAwait(false));
             }
 
             foreach (DirectoryInfo subSource in source.GetDirectories())
             {
                 DirectoryInfo nextTargetSubDir = target.CreateSubdirectory(subSource.Name);
-                tasks.Add(this.CopyAllAsync(subSource, nextTargetSubDir, bufferLength).ConfigureAwait(false));
+                tasks.Add(this.CopyAllAsync(subSource, nextTargetSubDir, bufferLength, overwrite).ConfigureAwait(false));
             }
 
             foreach (var task in tasks)

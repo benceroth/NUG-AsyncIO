@@ -238,12 +238,19 @@ namespace AsyncIO.Core
         /// </summary>
         /// <param name="sourcePath">Source directory path.</param>
         /// <param name="targetPath">Target directory path.</param>
-        public void Copy(string sourcePath, string targetPath)
+        /// <param name="overwrite">Overwrite existing file.</param>
+        public void Copy(string sourcePath, string targetPath, bool overwrite = false)
         {
             var targetFolder = Path.GetDirectoryName(targetPath);
             Directory.CreateDirectory(targetFolder);
             this.HandleTransaction(targetPath);
-            File.Copy(sourcePath, targetPath);
+
+            if (!overwrite && File.Exists(targetPath))
+            {
+                throw new IOException("Cannot create a file when that file already exists");
+            }
+
+            File.WriteAllBytes(targetPath, File.ReadAllBytes(sourcePath));
         }
 
         /// <summary>
@@ -251,12 +258,19 @@ namespace AsyncIO.Core
         /// </summary>
         /// <param name="sourcePath">Source directory path.</param>
         /// <param name="targetPath">Target directory path.</param>
+        /// <param name="overwrite">Overwrite existing file.</param>
         /// <returns>Task.</returns>
-        public async Task CopyAsync(string sourcePath, string targetPath)
+        public async Task CopyAsync(string sourcePath, string targetPath, bool overwrite = false)
         {
             var targetFolder = Path.GetDirectoryName(targetPath);
             Directory.CreateDirectory(targetFolder);
             this.HandleTransaction(targetPath);
+
+            if (!overwrite && File.Exists(targetPath))
+            {
+                throw new IOException("Cannot create a file when that file already exists");
+            }
+
             await File.WriteAllBytesAsync(targetPath, await File.ReadAllBytesAsync(sourcePath).ConfigureAwait(false)).ConfigureAwait(false);
         }
 
@@ -266,14 +280,16 @@ namespace AsyncIO.Core
         /// <param name="sourcePath">Source directory path.</param>
         /// <param name="targetPath">Target directory path.</param>
         /// <param name="bufferLength">Buffer length.</param>
-        public void Copy(string sourcePath, string targetPath, int bufferLength)
+        /// <param name="overwrite">Overwrite existing file.</param>
+        public void Copy(string sourcePath, string targetPath, int bufferLength, bool overwrite = false)
         {
             var targetFolder = Path.GetDirectoryName(targetPath);
             Directory.CreateDirectory(targetFolder);
             this.HandleTransaction(targetPath);
             using (var sourceStream = new FileStream(sourcePath, FileMode.Open))
             {
-                using (var destinationStream = new FileStream(targetPath, FileMode.CreateNew))
+                var fileMode = overwrite ? FileMode.Create : FileMode.CreateNew;
+                using (var destinationStream = new FileStream(targetPath, fileMode))
                 {
                     var buffer = new byte[bufferLength];
                     int readCount = sourceStream.Read(buffer, 0, bufferLength);
@@ -292,15 +308,17 @@ namespace AsyncIO.Core
         /// <param name="sourcePath">Source directory path.</param>
         /// <param name="targetPath">Target directory path.</param>
         /// <param name="bufferLength">Buffer length.</param>
+        /// <param name="overwrite">Overwrite existing file.</param>
         /// <returns>Task.</returns>
-        public async Task CopyAsync(string sourcePath, string targetPath, int bufferLength)
+        public async Task CopyAsync(string sourcePath, string targetPath, int bufferLength, bool overwrite = false)
         {
             var targetFolder = Path.GetDirectoryName(targetPath);
             Directory.CreateDirectory(targetFolder);
             this.HandleTransaction(targetPath);
             using (var sourceStream = new FileStream(sourcePath, FileMode.Open))
             {
-                using (var destinationStream = new FileStream(targetPath, FileMode.CreateNew))
+                var fileMode = overwrite ? FileMode.Create : FileMode.CreateNew;
+                using (var destinationStream = new FileStream(targetPath, fileMode))
                 {
                     var buffer = new byte[bufferLength];
                     int readCount = await sourceStream.ReadAsync(buffer, 0, bufferLength).ConfigureAwait(false);

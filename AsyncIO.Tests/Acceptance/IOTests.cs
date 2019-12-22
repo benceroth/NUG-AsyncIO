@@ -134,7 +134,8 @@ namespace AsyncIO.Tests.Acceptance
         }
 
         [Test]
-        public void CopyAndRollback()
+        [Sequential]
+        public void CopyAndRollback([Values(false, true)] bool overwrite)
         {
             IO io = new IO();
             string path = Path.Combine(AppBase, "TestCopyRollback");
@@ -143,14 +144,15 @@ namespace AsyncIO.Tests.Acceptance
             File.Delete(target);
 
             io.BeginTransaction();
-            io.File.Copy(path, target);
+            io.File.Copy(path, target, overwrite);
             Assert.AreEqual(true, File.Exists(target));
             io.Rollback();
             Assert.AreEqual(false, File.Exists(target));
         }
 
         [Test]
-        public void CopyAndRollbackAsync()
+        [Sequential]
+        public void CopyAndRollbackAsync([Values(false, true)] bool overwrite)
         {
             IO io = new IO();
             string path = Path.Combine(AppBase, "TestCopyRollbackAsync");
@@ -159,14 +161,15 @@ namespace AsyncIO.Tests.Acceptance
             File.Delete(target);
 
             io.BeginTransaction();
-            io.File.CopyAsync(path, target).Wait();
+            io.File.CopyAsync(path, target, overwrite).Wait();
             Assert.AreEqual(true, File.Exists(target));
             io.Rollback();
             Assert.AreEqual(false, File.Exists(target));
         }
 
         [Test]
-        public void CopyAndRollbackWithBuffer()
+        [Sequential]
+        public void CopyAndRollbackWithBuffer([Values(false, true)] bool overwrite)
         {
             IO io = new IO();
             string path = Path.Combine(AppBase, "TestCopyRollbackBuffer");
@@ -175,14 +178,15 @@ namespace AsyncIO.Tests.Acceptance
             File.Delete(target);
 
             io.BeginTransaction();
-            io.File.Copy(path, target, 512);
+            io.File.Copy(path, target, 512, overwrite);
             Assert.AreEqual(true, File.Exists(target));
             io.Rollback();
             Assert.AreEqual(false, File.Exists(target));
         }
 
         [Test]
-        public void CopyAndRollbackWithBufferAsync()
+        [Sequential]
+        public void CopyAndRollbackWithBufferAsync([Values(false, true)] bool overwrite)
         {
             IO io = new IO();
             string path = Path.Combine(AppBase, "TestCopyRollbackBufferAsync");
@@ -191,14 +195,15 @@ namespace AsyncIO.Tests.Acceptance
             File.Delete(target);
 
             io.BeginTransaction();
-            io.File.CopyAsync(path, target, 512).Wait();
+            io.File.CopyAsync(path, target, 512, overwrite).Wait();
             Assert.AreEqual(true, File.Exists(target));
             io.Rollback();
             Assert.AreEqual(false, File.Exists(target));
         }
 
         [Test]
-        public void CopyDirectoryAndRollback()
+        [Sequential]
+        public void CopyDirectoryAndRollback([Values(false, true)] bool overwrite)
         {
             IO io = new IO();
             string path = AppBase;
@@ -210,14 +215,15 @@ namespace AsyncIO.Tests.Acceptance
             }
 
             io.BeginTransaction();
-            io.Directory.Copy(path, target);
+            io.Directory.Copy(path, target, overwrite);
             Assert.AreEqual(true, Directory.Exists(target));
             io.Rollback();
             Assert.AreEqual(false, Directory.Exists(target));
         }
 
         [Test]
-        public void CopyDirectoryAndRollbackAsync()
+        [Sequential]
+        public void CopyDirectoryAndRollbackAsync([Values(false, true)] bool overwrite)
         {
             IO io = new IO();
             string path = AppBase;
@@ -229,14 +235,15 @@ namespace AsyncIO.Tests.Acceptance
             }
 
             io.BeginTransaction();
-            io.Directory.CopyAsync(path, target).Wait();
+            io.Directory.CopyAsync(path, target, overwrite).Wait();
             Assert.AreEqual(true, Directory.Exists(target));
             io.Rollback();
             Assert.AreEqual(false, Directory.Exists(target));
         }
 
         [Test]
-        public void CopyDirectoryAndRollbackWithBuffer()
+        [Sequential]
+        public void CopyDirectoryAndRollbackWithBuffer([Values(false, true)] bool overwrite)
         {
             IO io = new IO();
             string path = AppBase;
@@ -248,14 +255,15 @@ namespace AsyncIO.Tests.Acceptance
             }
 
             io.BeginTransaction();
-            io.Directory.Copy(path, target, 1024);
+            io.Directory.Copy(path, target, 1024, overwrite);
             Assert.AreEqual(true, Directory.Exists(target));
             io.Rollback();
             Assert.AreEqual(false, Directory.Exists(target));
         }
 
         [Test]
-        public void CopyDirectoryAndRollbackWithBufferAsync()
+        [Sequential]
+        public void CopyDirectoryAndRollbackWithBufferAsync([Values(false, true)] bool overwrite)
         {
             IO io = new IO();
             string path = AppBase;
@@ -267,10 +275,62 @@ namespace AsyncIO.Tests.Acceptance
             }
 
             io.BeginTransaction();
-            io.Directory.CopyAsync(path, target, 1024).Wait();
+            io.Directory.CopyAsync(path, target, 1024, overwrite).Wait();
             Assert.AreEqual(true, Directory.Exists(target));
             io.Rollback();
             Assert.AreEqual(false, Directory.Exists(target));
+        }
+
+        [Test]
+        public async Task IgnoreExistingFile()
+        {
+            IO io = new IO();
+            string path = Path.Combine(AppBase, "IgnoreExistingFile");
+            File.WriteAllText(path, new string(' ', 10000));
+            await Task.Delay(50);
+            try
+            {
+                io.BeginTransaction();
+                io.File.Copy(path, path);
+                await io.File.CopyAsync(path, path);
+                io.File.Copy(path, path, 512);
+                await io.File.CopyAsync(path, path, 512);
+                io.Commit();
+            }
+            catch (Exception)
+            {
+                io.Rollback();
+            }
+
+            Assert.AreEqual(true, File.Exists(path));
+        }
+
+        [Test]
+        public void OverwriteExistingFile()
+        {
+            IO io = new IO();
+            string path = Path.Combine(AppBase, "OverwriteExistingFile");
+            string target = Path.Combine(AppBase, "OverwriteExistingFileTarget");
+            File.WriteAllText(path, new string(' ', 10000));
+
+            Assert.That(async () =>
+            {
+                try
+                {
+                    io.BeginTransaction();
+                    io.File.Copy(path, target, true);
+                    await io.File.CopyAsync(path, target, true);
+                    io.File.Copy(path, target, 512, true);
+                    await io.File.CopyAsync(path, target, 512, true);
+                    io.Commit();
+                }
+                catch (Exception)
+                {
+                    io.Rollback();
+                }
+            }, Throws.Nothing);
+
+            Assert.AreEqual(true, File.Exists(target));
         }
     }
 }
