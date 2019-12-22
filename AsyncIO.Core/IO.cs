@@ -6,6 +6,7 @@ namespace AsyncIO.Core
 {
     using System;
     using CsvHelper.Configuration;
+    using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
 
     /// <summary>
@@ -20,12 +21,13 @@ namespace AsyncIO.Core
         /// <summary>
         /// Initializes a new instance of the <see cref="IO"/> class.
         /// </summary>
-        public IO()
+        /// <param name="logger">Injected logger.</param>
+        public IO(ILogger logger = null)
         {
             this.csvConfiguration = new CsvConfiguration();
             this.jsonConfiguration = new JsonConfiguration();
 
-            this.transaction = new Transaction();
+            this.transaction = new Transaction(logger);
             this.Conversions = new Conversions(this.csvConfiguration, this.jsonConfiguration);
 
             this.File = new AsyncFile(this.Conversions, this.transaction);

@@ -7,9 +7,11 @@ namespace AsyncIO.Core
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
     using CsvHelper;
+    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// Provides features for file handling.
@@ -331,27 +333,25 @@ namespace AsyncIO.Core
             }
         }
 
-        private void HandleTransaction(string path)
+        private void HandleTransaction(string path, [CallerMemberName] string caller = null)
         {
-            if (this.transaction.Running)
+            var start = DateTime.Now.AddMilliseconds(-50);
+            var folder = Path.GetDirectoryName(path);
+            this.transaction.PushUndoAction(
+            () =>
             {
-                var start = DateTime.Now.AddMilliseconds(-50);
-                var folder = Path.GetDirectoryName(path);
-                this.transaction.Actions.Push(() =>
+                if (Directory.Exists(folder))
                 {
-                    if (Directory.Exists(folder))
+                    if (Directory.GetCreationTime(folder) >= start)
                     {
-                        if (Directory.GetCreationTime(folder) >= start)
-                        {
-                            Directory.Delete(folder, true);
-                        }
-                        else if (File.Exists(path) && File.GetLastWriteTime(path) >= start)
-                        {
-                            File.Delete(path);
-                        }
+                        Directory.Delete(folder, true);
                     }
-                });
-            }
+                    else if (File.Exists(path) && File.GetLastWriteTime(path) >= start)
+                    {
+                        File.Delete(path);
+                    }
+                }
+            }, caller);
         }
     }
 }
